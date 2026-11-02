@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~
+  ~ ButterMDM: Open Source Android MDM Software
+  ~ ButterMDM (https://github.com/ButterMDM)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        logicalFilePath="devicereset.changelog.xml">
+
+    <!--
+    The change set IDs MUST start with "plugin-<plugin identifier>" followed by dash symbol ALWAYS.
+    The database object names declared by plugin MUST always start with "plugin_<plugin identifier>" followed by underscore
+    symbol.
+    -->
+
+    <changeSet id="plugin-devicereset-23.09.2026-22:40" author="buttermdm" context="common">
+        <comment>Plugin,new: devicereset</comment>
+        <sql>
+            INSERT INTO plugins (
+            identifier, name, description,
+            javascriptModuleFile,
+            functionsViewTemplate,
+            settingsViewTemplate,
+            namelocalizationkey,
+            settingsPermission, functionsPermission, deviceFunctionsPermission,
+            enabledForDevice
+            )
+            VALUES (
+            'devicereset', 'Device Reset', 'Factory reset, reboot, lock and password reset',
+            'app/components/plugins/devicereset/devicereset.module.js',
+            'app/components/plugins/devicereset/views/devicereset.html',
+            NULL,
+            'plugin.devicereset.localization.key.name',
+            NULL,
+            NULL,
+            NULL,
+            TRUE
+            );
+
+            -- Permissions are granted to the administrator roles only; assign them to other roles explicitly
+            INSERT INTO permissions (name, description) VALUES ('plugin_devicereset_reset', 'Can factory-reset devices');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+            INSERT INTO permissions (name, description) VALUES ('plugin_devicereset_lock', 'Can lock and unlock devices');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+            INSERT INTO permissions (name, description) VALUES ('plugin_devicereset_reboot', 'Can reboot devices');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+            INSERT INTO permissions (name, description) VALUES ('plugin_devicereset_password', 'Can reset device passwords');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+
+            CREATE TABLE plugin_devicereset_status (
+                deviceId INT NOT NULL CONSTRAINT plugin_devicereset_status_pr_key PRIMARY KEY
+                    REFERENCES devices (id) ON DELETE CASCADE,
+                factoryReset BOOLEAN NOT NULL DEFAULT FALSE,
+                reboot BOOLEAN NOT NULL DEFAULT FALSE,
+                lock BOOLEAN NOT NULL DEFAULT FALSE,
+                lockMessage TEXT,
+                passwordReset TEXT,
+                requestedAt BIGINT,
+                requestedBy INT,
+                resetConfirmedAt BIGINT,
+                rebootConfirmedAt BIGINT,
+                passwordConfirmedAt BIGINT
+            );
+        </sql>
+        <rollback>
+            DELETE FROM plugins WHERE identifier = 'devicereset';
+            DELETE FROM permissions WHERE name = 'plugin_devicereset_reset';
+            DELETE FROM permissions WHERE name = 'plugin_devicereset_lock';
+            DELETE FROM permissions WHERE name = 'plugin_devicereset_reboot';
+            DELETE FROM permissions WHERE name = 'plugin_devicereset_password';
+            DROP TABLE plugin_devicereset_status;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

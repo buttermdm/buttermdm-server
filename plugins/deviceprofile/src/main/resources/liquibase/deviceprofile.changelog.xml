@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~
+  ~ ButterMDM: Open Source Android MDM Software
+  ~ ButterMDM (https://github.com/ButterMDM)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        logicalFilePath="deviceprofile.changelog.xml">
+
+    <!--
+    The change set IDs MUST start with "plugin-<plugin identifier>" followed by dash symbol ALWAYS.
+    The database object names declared by plugin MUST always start with "plugin_<plugin identifier>" followed by underscore
+    symbol.
+    -->
+
+    <changeSet id="plugin-deviceprofile-25.09.2026-22:50" author="buttermdm" context="common">
+        <comment>Plugin,new: deviceprofile</comment>
+        <sql>
+            INSERT INTO plugins (
+            identifier, name, description,
+            javascriptModuleFile,
+            functionsViewTemplate,
+            settingsViewTemplate,
+            namelocalizationkey,
+            settingsPermission, functionsPermission, deviceFunctionsPermission,
+            enabledForDevice
+            )
+            VALUES (
+            'deviceprofile', 'Device Profile', 'Android versions, capabilities and setup status of the devices',
+            'app/components/plugins/deviceprofile/deviceprofile.module.js',
+            'app/components/plugins/deviceprofile/views/deviceprofile.html',
+            NULL,
+            'plugin.deviceprofile.localization.key.name',
+            NULL,
+            'plugin_deviceprofile_view',
+            'plugin_deviceprofile_view',
+            TRUE
+            );
+
+            INSERT INTO permissions (name, description) VALUES ('plugin_deviceprofile_view', 'Can view device profiles, capabilities and compatibility checks');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+            INSERT INTO permissions (name, description) VALUES ('plugin_deviceprofile_manage', 'Can upload capability catalogs, request setup checks and create enrollment scripts');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+
+            CREATE TABLE plugin_deviceprofile_profiles (
+                deviceId INT NOT NULL CONSTRAINT plugin_deviceprofile_profiles_pr_key PRIMARY KEY
+                    REFERENCES devices (id) ON DELETE CASCADE,
+                sdkInt INT NOT NULL,
+                release VARCHAR(32),
+                securityPatch VARCHAR(16),
+                manufacturer VARCHAR(128),
+                brand VARCHAR(128),
+                model VARCHAR(128),
+                fingerprint VARCHAR(512),
+                agentVersionCode INT,
+                profile TEXT NOT NULL,
+                capabilities TEXT,
+                catalogVersion VARCHAR(32),
+                updateTime BIGINT NOT NULL
+            );
+            CREATE INDEX plugin_deviceprofile_profiles_sdk_idx ON plugin_deviceprofile_profiles (sdkInt);
+
+            CREATE TABLE plugin_deviceprofile_results (
+                deviceId INT NOT NULL REFERENCES devices (id) ON DELETE CASCADE,
+                capabilityId VARCHAR(128) NOT NULL,
+                outcome VARCHAR(32) NOT NULL,
+                strategyId VARCHAR(64),
+                detail TEXT,
+                updateTime BIGINT NOT NULL,
+                CONSTRAINT plugin_deviceprofile_results_pr_key PRIMARY KEY (deviceId, capabilityId)
+            );
+
+            CREATE TABLE plugin_deviceprofile_setup (
+                deviceId INT NOT NULL REFERENCES devices (id) ON DELETE CASCADE,
+                stepId VARCHAR(64) NOT NULL,
+                state VARCHAR(32) NOT NULL,
+                detail TEXT,
+                updateTime BIGINT NOT NULL,
+                CONSTRAINT plugin_deviceprofile_setup_pr_key PRIMARY KEY (deviceId, stepId)
+            );
+
+            CREATE TABLE plugin_deviceprofile_catalog (
+                version VARCHAR(32) NOT NULL CONSTRAINT plugin_deviceprofile_catalog_pr_key PRIMARY KEY,
+                schemaVersion INT NOT NULL,
+                content TEXT NOT NULL,
+                active BOOLEAN NOT NULL DEFAULT FALSE,
+                uploadedBy INT,
+                uploadTime BIGINT NOT NULL
+            );
+
+            CREATE TABLE plugin_deviceprofile_history (
+                id SERIAL NOT NULL CONSTRAINT plugin_deviceprofile_history_pr_key PRIMARY KEY,
+                deviceId INT NOT NULL REFERENCES devices (id) ON DELETE CASCADE,
+                eventType VARCHAR(32) NOT NULL,
+                detail TEXT,
+                eventTime BIGINT NOT NULL
+            );
+            CREATE INDEX plugin_deviceprofile_history_device_idx ON plugin_deviceprofile_history (deviceId, eventTime);
+
+            CREATE TABLE plugin_deviceprofile_appversions (
+                applicationVersionId INT NOT NULL CONSTRAINT plugin_deviceprofile_appversions_pr_key PRIMARY KEY
+                    REFERENCES applicationVersions (id) ON DELETE CASCADE,
+                analyzed BOOLEAN NOT NULL,
+                minSdk INT,
+                targetSdk INT,
+                certDigest VARCHAR(128),
+                minSdkOverride INT,
+                maxSdkOverride INT,
+                detail TEXT,
+                analyzedAt BIGINT NOT NULL
+            );
+        </sql>
+        <rollback>
+            DELETE FROM plugins WHERE identifier = 'deviceprofile';
+            DELETE FROM permissions WHERE name = 'plugin_deviceprofile_view';
+            DELETE FROM permissions WHERE name = 'plugin_deviceprofile_manage';
+            DROP TABLE plugin_deviceprofile_appversions;
+            DROP TABLE plugin_deviceprofile_history;
+            DROP TABLE plugin_deviceprofile_catalog;
+            DROP TABLE plugin_deviceprofile_setup;
+            DROP TABLE plugin_deviceprofile_results;
+            DROP TABLE plugin_deviceprofile_profiles;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="plugin-deviceprofile-18.10.2026-12:00" author="buttermdm" context="common">
+        <comment>Add retiredAt on profiles, configVersion on results, and fleet alert settings table</comment>
+        <sql>
+            ALTER TABLE plugin_deviceprofile_profiles ADD COLUMN retiredAt BIGINT NULL;
+            ALTER TABLE plugin_deviceprofile_results ADD COLUMN configVersion VARCHAR(64) NULL;
+            CREATE TABLE plugin_deviceprofile_alerts (
+                customerId INT NOT NULL CONSTRAINT plugin_deviceprofile_alerts_pr_key PRIMARY KEY
+                    REFERENCES customers (id) ON DELETE CASCADE,
+                minSdkAlert INT NOT NULL DEFAULT 28,
+                maxPatchAgeMonths INT NOT NULL DEFAULT 6,
+                setupIncompleteDays INT NOT NULL DEFAULT 7,
+                alertOnOsUpgrade BOOLEAN NOT NULL DEFAULT TRUE,
+                alertEmail VARCHAR(256)
+            );
+        </sql>
+        <rollback>
+            DROP TABLE plugin_deviceprofile_alerts;
+            ALTER TABLE plugin_deviceprofile_results DROP COLUMN configVersion;
+            ALTER TABLE plugin_deviceprofile_profiles DROP COLUMN retiredAt;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

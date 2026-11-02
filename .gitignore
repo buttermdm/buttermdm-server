@@ -1,0 +1,30 @@
+# maven target dir
+target
+
+# idea 
+*.iml
+.idea
+
+# Node downloaded by the console build (frontend-maven-plugin)
+server/target/console-node
+**/node_modules
+
+# bower modules
+**/bower_components
+
+# grunt bower task lib folder
+
+# js generated libs
+
+# logs folder
+logs
+
+server/Dockerfile
+server/context.xml
+server/docker-compose.yml
+server/src/main/resources/docker/base/Dockerfile
+server/build.properties
+
+# Backup copies
+server/pom.xml.bak
+plugins/pom.xml.bak

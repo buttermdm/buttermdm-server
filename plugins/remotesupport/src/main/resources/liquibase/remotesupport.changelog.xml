@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~
+  ~ ButterMDM: Open Source Android MDM Software
+  ~ ButterMDM (https://github.com/ButterMDM)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        logicalFilePath="remotesupport.changelog.xml">
+
+    <!--
+    The change set IDs MUST start with "plugin-<plugin identifier>" followed by dash symbol ALWAYS.
+    The database object names declared by plugin MUST always start with "plugin_<plugin identifier>" followed by underscore
+    symbol.
+    -->
+
+    <changeSet id="plugin-remotesupport-25.09.2026-23:30" author="buttermdm" context="common">
+        <comment>Plugin,new: remotesupport</comment>
+        <sql>
+            INSERT INTO plugins (
+            identifier, name, description,
+            javascriptModuleFile,
+            functionsViewTemplate,
+            settingsViewTemplate,
+            namelocalizationkey,
+            settingsPermission, functionsPermission, deviceFunctionsPermission,
+            enabledForDevice
+            )
+            VALUES (
+            'remotesupport', 'Remote Support', 'Remote view and control of devices',
+            'app/components/plugins/remotesupport/remotesupport.module.js',
+            'app/components/plugins/remotesupport/views/remotesupport.html',
+            NULL,
+            'plugin.remotesupport.localization.key.name',
+            NULL,
+            'plugin_remotesupport_view',
+            'plugin_remotesupport_view',
+            TRUE
+            );
+
+            -- Permissions are granted to the administrator roles only; assign them to other roles explicitly
+            INSERT INTO permissions (name, description) VALUES ('plugin_remotesupport_view', 'Can view device screens remotely');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+            INSERT INTO permissions (name, description) VALUES ('plugin_remotesupport_control', 'Can control devices remotely');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+            INSERT INTO permissions (name, description) VALUES ('plugin_remotesupport_settings', 'Can enable remote support for configurations');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+
+            -- Remote support is off for every configuration until an administrator turns it on
+            CREATE TABLE plugin_remotesupport_settings (
+                configurationId INT NOT NULL CONSTRAINT plugin_remotesupport_settings_pr_key PRIMARY KEY
+                    REFERENCES configurations (id) ON DELETE CASCADE,
+                enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                requireAcceptance BOOLEAN NOT NULL DEFAULT TRUE,
+                maxMinutes INT NOT NULL DEFAULT 60
+            );
+
+            CREATE TABLE plugin_remotesupport_sessions (
+                id VARCHAR(36) NOT NULL CONSTRAINT plugin_remotesupport_sessions_pr_key PRIMARY KEY,
+                deviceId INT NOT NULL REFERENCES devices (id) ON DELETE CASCADE,
+                customerId INT NOT NULL,
+                userId INT,
+                userLogin VARCHAR(100),
+                viewOnly BOOLEAN NOT NULL,
+                createdAt BIGINT NOT NULL,
+                connectedAt BIGINT,
+                endedAt BIGINT,
+                endReason VARCHAR(100),
+                frames BIGINT NOT NULL DEFAULT 0,
+                bytes BIGINT NOT NULL DEFAULT 0
+            );
+            CREATE INDEX plugin_remotesupport_sessions_device_idx ON plugin_remotesupport_sessions (deviceId, createdAt);
+        </sql>
+        <rollback>
+            DELETE FROM plugins WHERE identifier = 'remotesupport';
+            DELETE FROM permissions WHERE name = 'plugin_remotesupport_view';
+            DELETE FROM permissions WHERE name = 'plugin_remotesupport_control';
+            DELETE FROM permissions WHERE name = 'plugin_remotesupport_settings';
+            DROP TABLE plugin_remotesupport_sessions;
+            DROP TABLE plugin_remotesupport_settings;
+        </rollback>
+    </changeSet>
+
+    <changeSet id="plugin-remotesupport-18.10.2026-12:00" author="buttermdm" context="common">
+        <comment>Add WebRTC transport and STUN/TURN settings to plugin_remotesupport_settings</comment>
+        <sql>
+            ALTER TABLE plugin_remotesupport_settings ADD COLUMN IF NOT EXISTS transport VARCHAR(16) NOT NULL DEFAULT 'auto';
+            ALTER TABLE plugin_remotesupport_settings ADD COLUMN IF NOT EXISTS stunUrl VARCHAR(256);
+            ALTER TABLE plugin_remotesupport_settings ADD COLUMN IF NOT EXISTS turnUrl VARCHAR(256);
+            ALTER TABLE plugin_remotesupport_settings ADD COLUMN IF NOT EXISTS turnUsername VARCHAR(128);
+            ALTER TABLE plugin_remotesupport_settings ADD COLUMN IF NOT EXISTS turnCredential VARCHAR(256);
+        </sql>
+        <rollback>
+            ALTER TABLE plugin_remotesupport_settings DROP COLUMN IF EXISTS turnCredential;
+            ALTER TABLE plugin_remotesupport_settings DROP COLUMN IF EXISTS turnUsername;
+            ALTER TABLE plugin_remotesupport_settings DROP COLUMN IF EXISTS turnUrl;
+            ALTER TABLE plugin_remotesupport_settings DROP COLUMN IF EXISTS stunUrl;
+            ALTER TABLE plugin_remotesupport_settings DROP COLUMN IF EXISTS transport;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,63 @@
+ButterMDM: a corporate launcher for Android
+==============================================
+=   INSTALL INSTRUCTIONS FOR THE WEB PANEL   =
+==============================================
+
+Supported systems: Debian 10, 11, 12, 13 and Ubuntu 18.04 - 24.04
+(other apt-based distributions are detected and handled as their base system).
+
+1. Get the installer: either clone the server repository
+
+# git clone --branch v0.1.0 https://github.com/buttermdm/buttermdm-server
+# cd buttermdm-server
+
+   or download only buttermdm_install.sh; run on its own, it downloads tag
+   v0.1.0 of buttermdm-server itself.
+
+2. Run the installer script as root
+
+# sudo ./buttermdm_install.sh
+
+The installer is a bootstrapper. It detects the distribution and checks the
+required components: aapt, PostgreSQL, Apache Tomcat 9, and git, Maven and a
+Java development kit for the build. If any are missing, it lists them and
+asks once whether to install them all.
+
+It then compiles ButterMDM: the server source is copied (or downloaded) to
+/usr/local/src/buttermdm, the web console is downloaded from tag v0.1.0 of
+https://github.com/buttermdm/buttermdm-console, and Maven builds the web
+application. The first build needs Internet access (Java libraries, Node.js
+and npm packages), about 2 GB of free disk space and several minutes.
+
+Options:
+
+# sudo ./buttermdm_install.sh --console /path/to/console   (local console source)
+# sudo ./buttermdm_install.sh --war /path/to/launcher.war   (skip the build)
+
+ButterMDM is a Java EE (javax.*) web application and needs Tomcat 9;
+Tomcat 10 and later (Jakarta EE) cannot run it.
+ - Where the distribution packages tomcat9 (Debian 10-12, Ubuntu 20.04/22.04),
+   the package is installed.
+ - Where it does not (Debian 13, which has only tomcat10/tomcat11), the
+   installer downloads the official Apache Tomcat 9 release from apache.org,
+   verifies its SHA-512 checksum and installs it as the tomcat9 service:
+   binaries in /opt/tomcat9, configuration and applications in /var/lib/tomcat9,
+   running as the user tomcat. A running tomcat10/tomcat11 service that holds
+   port 8080 can be stopped and disabled by the installer.
+
+3. The installer then asks for the PostgreSQL settings. For a local database
+   it can create the database and user itself; to create them manually:
+
+# sudo su postgres
+# psql
+postgres=# CREATE USER buttermdm WITH PASSWORD 'topsecret';
+postgres=# CREATE DATABASE buttermdm WITH OWNER=buttermdm;
+postgres=# \q
+
+4. Answer the remaining questions (storage directory, web address, optional
+   SMTP), review the summary and confirm. The installer deploys ButterMDM,
+   loads the initial data, and can optionally set up HTTPS with Let's Encrypt
+   and redirect port 443 to Tomcat.
+
+5. On success, the installer prints the URL. Open ButterMDM in the browser.
+   A log of the installation is kept in /var/log/buttermdm-install.log.

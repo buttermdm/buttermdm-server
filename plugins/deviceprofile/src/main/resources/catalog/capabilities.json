@@ -1,0 +1,2282 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "2026.10.1",
+  "capabilities": [
+    {
+      "id": "kiosk.lockTask",
+      "area": "kiosk",
+      "title": "Kiosk mode (lock task)",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "LockTaskBasicApi26",
+          "minSdk": 26
+        }
+      ],
+      "configFields": [
+        "kioskMode"
+      ],
+      "tests": [
+        "T9",
+        "T10",
+        "T12"
+      ],
+      "confidence": "verified",
+      "notes": "Verified on Android 10 (Elo) and 16 (Pixel)"
+    },
+    {
+      "id": "kiosk.lockTaskFeatures",
+      "area": "kiosk",
+      "title": "Home, Recents, notifications, system info, keyguard and power menu settings of the kiosk mode",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "LockTaskFeaturesApi28",
+          "minSdk": 28
+        }
+      ],
+      "fallback": {
+        "strategy": "LockTaskBasicApi26",
+        "state": "degraded",
+        "effect": "The kiosk runs without these buttons; the power menu can't be restricted"
+      },
+      "configFields": [
+        "kioskHome",
+        "kioskRecents",
+        "kioskNotifications",
+        "kioskSystemInfo",
+        "kioskKeyguard",
+        "kioskLockButtons"
+      ],
+      "tests": [
+        "T9",
+        "T11"
+      ],
+      "confidence": "verified",
+      "notes": "Verified on Android 10 (Elo) and 16 (Pixel)"
+    },
+    {
+      "id": "kiosk.statusBarDisable",
+      "area": "kiosk",
+      "title": "Status bar lock",
+      "minSdk": 23,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "StatusBarDisabled",
+          "minSdk": 23
+        }
+      ],
+      "configFields": [
+        "lockStatusBar"
+      ],
+      "tests": [
+        "T9"
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "password.resetWithToken",
+      "area": "security",
+      "title": "Remote device password reset",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "ResetWithTokenApi26",
+          "minSdk": 26
+        }
+      ],
+      "requires": [
+        {
+          "probe": "resetPasswordTokenActive",
+          "missing": "user",
+          "effect": "The reset token becomes active after the device is unlocked once"
+        }
+      ],
+      "tests": [
+        "T6"
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "password.quality",
+      "area": "security",
+      "title": "Password requirements",
+      "minSdk": 26,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "PasswordQuality",
+          "minSdk": 26
+        }
+      ],
+      "configFields": [
+        "passwordMode"
+      ],
+      "confidence": "documented",
+      "notes": "setPasswordQuality is deprecated since Android 12 but still honoured for device owners"
+    },
+    {
+      "id": "screenCapture.disable",
+      "area": "security",
+      "title": "Screenshot and screen recording block",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "ScreenCaptureDisabled",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "disableScreenshots"
+      ],
+      "confidence": "documented",
+      "notes": "Also blocks remote support screen capture"
+    },
+    {
+      "id": "location.toggle",
+      "area": "system",
+      "title": "Location on/off without asking the user",
+      "minSdk": 30,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "LocationEnabledApi30",
+          "minSdk": 30
+        }
+      ],
+      "fallback": {
+        "state": "requires",
+        "missing": [
+          "user"
+        ],
+        "effect": "The user is asked to switch location on or off in Settings"
+      },
+      "configFields": [
+        "gps"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "wifi.toggle",
+      "area": "network",
+      "title": "Wi-Fi on/off",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "WifiManagerDeviceOwner",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "wifi"
+      ],
+      "confidence": "documented",
+      "notes": "Since Android 10 only device owners and system apps can switch Wi-Fi"
+    },
+    {
+      "id": "bluetooth.toggle",
+      "area": "network",
+      "title": "Bluetooth on/off",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "BluetoothAdapterDeviceOwner",
+          "minSdk": 21
+        }
+      ],
+      "requires": [
+        {
+          "probe": "bluetoothConnectGranted",
+          "minSdk": 31,
+          "missing": "permission",
+          "effect": "Needs the Nearby devices (BLUETOOTH_CONNECT) permission, granted automatically by the setup check"
+        }
+      ],
+      "configFields": [
+        "bluetooth"
+      ],
+      "confidence": "documented",
+      "notes": "Since Android 13 only device owners, profile owners and system apps can switch Bluetooth"
+    },
+    {
+      "id": "mobileData.toggle",
+      "area": "network",
+      "title": "Mobile data on/off without asking the user",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "MobileDataPrivileged",
+          "minSdk": 21
+        }
+      ],
+      "requires": [
+        {
+          "probe": "platformSigned",
+          "missing": "platformKey",
+          "effect": "Only possible for agents signed with the device maker's platform key"
+        }
+      ],
+      "fallback": {
+        "state": "requires",
+        "missing": [
+          "user"
+        ],
+        "effect": "The user is asked to switch mobile data"
+      },
+      "configFields": [
+        "mobileData"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "display.brightness",
+      "area": "system",
+      "title": "Screen brightness",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "SystemSettingApi28",
+          "minSdk": 28
+        }
+      ],
+      "fallback": {
+        "state": "degraded",
+        "effect": "Only the user's brightness setting is locked; the value isn't set"
+      },
+      "configFields": [
+        "autoBrightness",
+        "brightness"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "display.timeout",
+      "area": "system",
+      "title": "Screen timeout",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "SystemSettingApi28",
+          "minSdk": 28
+        }
+      ],
+      "fallback": {
+        "state": "degraded",
+        "effect": "Only the user's timeout setting is locked; the value isn't set"
+      },
+      "configFields": [
+        "manageTimeout",
+        "timeout"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "time.timeZone",
+      "area": "system",
+      "title": "Fixed time zone",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "SetTimeZoneApi28",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "timeZone"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "time.autoTimeZone",
+      "area": "system",
+      "title": "Automatic time zone",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "AutoTimeZoneApi30",
+          "minSdk": 30
+        },
+        {
+          "id": "GlobalSettingAutoTimeZone",
+          "minSdk": 28,
+          "maxSdk": 29
+        }
+      ],
+      "configFields": [
+        "timeZone"
+      ],
+      "confidence": "documented",
+      "notes": "Android 11 and later need setAutoTimeZoneEnabled; the global setting is ignored there"
+    },
+    {
+      "id": "systemUpdate.policy",
+      "area": "system",
+      "title": "System update policy",
+      "minSdk": 23,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "SystemUpdatePolicy",
+          "minSdk": 23
+        }
+      ],
+      "configFields": [
+        "systemUpdateType"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "apps.silentInstall",
+      "area": "apps",
+      "title": "Silent app installation and updates",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "PackageInstallerSession",
+          "minSdk": 21
+        }
+      ],
+      "tests": [
+        "T12"
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "remote.capture.mediaProjection",
+      "area": "remote",
+      "title": "Remote support: screen view",
+      "minSdk": 26,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "MediaProjectionJpeg",
+          "minSdk": 26
+        }
+      ],
+      "requires": [
+        {
+          "probe": "screenCaptureDisabled",
+          "expect": false,
+          "state": "unsupported",
+          "effect": "The configuration blocks screenshots, which also blocks screen capture"
+        }
+      ],
+      "confidence": "documented",
+      "notes": "Android asks the person at the device to allow the capture (every session on Android 14 and later)"
+    },
+    {
+      "id": "remote.input.accessibility",
+      "area": "remote",
+      "title": "Remote support: control (taps, swipes, keys, text)",
+      "minSdk": 26,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "AccessibilityGestures",
+          "minSdk": 26
+        }
+      ],
+      "requires": [
+        {
+          "anyProbe": [
+            "accessibilityServiceEnabled",
+            "writeSecureSettings"
+          ],
+          "missing": "adb",
+          "effect": "The Butter accessibility service must be enabled: automatically after 'adb shell pm grant com.buttermdm.agent android.permission.WRITE_SECURE_SETTINGS', or by hand in Settings"
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "kiosk.lockTaskLaunchOption",
+      "area": "kiosk",
+      "title": "Start app directly in lock task mode",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "ActivityOptionsLockTaskApi28",
+          "minSdk": 28
+        }
+      ],
+      "fallback": {
+        "strategy": "StartLockTaskFromActivity",
+        "state": "supported",
+        "effect": "Lock task starts immediately after the activity enters foreground"
+      },
+      "configFields": [
+        "kioskMode"
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "kiosk.keyguardDisable",
+      "area": "kiosk",
+      "title": "Disable keyguard lock screen",
+      "minSdk": 23,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "KeyguardDisabledApi23",
+          "minSdk": 23
+        }
+      ],
+      "configFields": [
+        "kioskKeyguard"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "password.resetLegacy",
+      "area": "security",
+      "title": "Legacy device password reset (Android 7 and earlier)",
+      "minSdk": 21,
+      "maxSdk": 25,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "ResetLegacy",
+          "minSdk": 21,
+          "maxSdk": 25
+        }
+      ],
+      "fallback": {
+        "strategy": "ResetWithTokenApi26",
+        "state": "supported",
+        "effect": "Android 8+ uses resetPasswordWithToken instead"
+      },
+      "confidence": "documented"
+    },
+    {
+      "id": "keyguard.features",
+      "area": "security",
+      "title": "Keyguard feature restrictions",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "KeyguardDisabledFeatures",
+          "minSdk": 21
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "camera.disable",
+      "area": "security",
+      "title": "Disable device cameras",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "CameraDisabled",
+          "minSdk": 21
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "usb.dataSignaling",
+      "area": "security",
+      "title": "Disable USB data signaling at hardware port level",
+      "minSdk": 31,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UsbDataSignalingApi31",
+          "minSdk": 31
+        }
+      ],
+      "fallback": {
+        "strategy": "DisallowUsbFileTransfer",
+        "state": "degraded",
+        "effect": "Blocks MTP/PTP file transfer via DISALLOW_USB_FILE_TRANSFER; port signaling remains active"
+      },
+      "configFields": [
+        "usbStorage"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "frp.policy",
+      "area": "security",
+      "title": "Factory Reset Protection (FRP) policy",
+      "minSdk": 30,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "FactoryResetProtectionPolicyApi30",
+          "minSdk": 30
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "apps.silentUninstall",
+      "area": "apps",
+      "title": "Silent app uninstallation",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "PackageInstallerUninstall",
+          "minSdk": 21
+        }
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "apps.hide",
+      "area": "apps",
+      "title": "Hide installed packages",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "ApplicationHiddenApi21",
+          "minSdk": 21
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "apps.suspend",
+      "area": "apps",
+      "title": "Suspend installed packages",
+      "minSdk": 24,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "PackagesSuspendedApi24",
+          "minSdk": 24
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "apps.userControlDisabled",
+      "area": "apps",
+      "title": "Protect critical apps from Force Stop and Clear Data",
+      "minSdk": 30,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserControlDisabledPackagesApi30",
+          "minSdk": 30
+        }
+      ],
+      "fallback": {
+        "strategy": "DisallowAppsControl",
+        "state": "degraded",
+        "effect": "Applies global DISALLOW_APPS_CONTROL restriction across all apps"
+      },
+      "confidence": "documented"
+    },
+    {
+      "id": "apps.installMinTargetSdk",
+      "area": "apps",
+      "title": "Target SDK floor enforcement on APK installation",
+      "minSdk": 34,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "TargetSdkFloorCheck",
+          "minSdk": 34
+        }
+      ],
+      "notes": "Android 14 blocks targetSdk < 23; Android 15/16 blocks targetSdk < 24",
+      "confidence": "documented"
+    },
+    {
+      "id": "permissions.runtimeAutoGrant",
+      "area": "permissions",
+      "title": "Silent runtime permission grant by Device Owner",
+      "minSdk": 23,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "SetPermissionGrantStateApi23",
+          "minSdk": 23
+        }
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "permissions.postNotifications",
+      "area": "permissions",
+      "title": "Notification permission (POST_NOTIFICATIONS)",
+      "minSdk": 33,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "PostNotificationsApi33",
+          "minSdk": 33
+        }
+      ],
+      "requires": [
+        {
+          "probe": "notificationsGranted",
+          "minSdk": 33,
+          "missing": "permission",
+          "effect": "POST_NOTIFICATIONS must be granted on Android 13+"
+        }
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "permissions.overlay",
+      "area": "permissions",
+      "title": "Display over other apps (SYSTEM_ALERT_WINDOW)",
+      "minSdk": 23,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "SystemAlertWindowAppOp",
+          "minSdk": 23
+        }
+      ],
+      "requires": [
+        {
+          "probe": "canDrawOverlays",
+          "missing": "user",
+          "effect": "Needs Display over other apps permission via ADB appops or Settings"
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "permissions.manageStorage",
+      "area": "permissions",
+      "title": "All files access (MANAGE_EXTERNAL_STORAGE)",
+      "minSdk": 30,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "ManageExternalStorageApi30",
+          "minSdk": 30
+        }
+      ],
+      "requires": [
+        {
+          "probe": "manageExternalStorageGranted",
+          "minSdk": 30,
+          "missing": "user",
+          "effect": "Needs MANAGE_EXTERNAL_STORAGE via ADB appops or Settings"
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "permissions.exactAlarm",
+      "area": "permissions",
+      "title": "Schedule exact alarms",
+      "minSdk": 31,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "ScheduleExactAlarmApi31",
+          "minSdk": 31
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "permissions.writeSecureSettings",
+      "area": "permissions",
+      "title": "Write secure system settings (WRITE_SECURE_SETTINGS)",
+      "minSdk": 21,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "WriteSecureSettingsAdb",
+          "minSdk": 21
+        }
+      ],
+      "requires": [
+        {
+          "probe": "writeSecureSettings",
+          "missing": "adb",
+          "effect": "Grant with: adb shell pm grant com.buttermdm.agent android.permission.WRITE_SECURE_SETTINGS"
+        }
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "wifi.configure",
+      "area": "network",
+      "title": "Configure corporate Wi-Fi networks",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "WifiConfigDeviceOwner",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "wifiSSID"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "network.lockdown",
+      "area": "network",
+      "title": "Lock down admin-configured Wi-Fi networks",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "WifiConfigLockdown",
+          "minSdk": 21
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "network.alwaysOnVpn",
+      "area": "network",
+      "title": "Always-on VPN configuration",
+      "minSdk": 24,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "AlwaysOnVpnPackageApi24",
+          "minSdk": 24
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "network.privateDns",
+      "area": "network",
+      "title": "Private DNS configuration",
+      "minSdk": 29,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "GlobalPrivateDnsApi29",
+          "minSdk": 29
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "systemUpdate.freezePeriods",
+      "area": "system",
+      "title": "System update freeze periods (holiday/maintenance freeze)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "FreezePeriodsApi28",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "systemUpdateType"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "systemUpdate.install",
+      "area": "system",
+      "title": "Install OTA system update package from file",
+      "minSdk": 29,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "InstallSystemUpdateApi29",
+          "minSdk": 29
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "time.autoTime",
+      "area": "system",
+      "title": "Automatic network time",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "AutoTimeApi30",
+          "minSdk": 30
+        },
+        {
+          "id": "AutoTimeRequiredApi26",
+          "minSdk": 26,
+          "maxSdk": 29
+        }
+      ],
+      "configFields": [
+        "autoTime"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "reboot",
+      "area": "system",
+      "title": "Remote device reboot",
+      "minSdk": 24,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "DeviceOwnerRebootApi24",
+          "minSdk": 24
+        }
+      ],
+      "tests": [
+        "T4"
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "factoryReset",
+      "area": "system",
+      "title": "Remote factory reset (wipe data)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "WipeDataDeviceOwnerApi34",
+          "minSdk": 34
+        },
+        {
+          "id": "WipeDataLegacy",
+          "minSdk": 21,
+          "maxSdk": 33
+        }
+      ],
+      "tests": [
+        "T8"
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "remote.capture.privileged",
+      "area": "remote",
+      "title": "Remote support: unattended screen capture without prompt",
+      "minSdk": 26,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "PrivilegedCapture",
+          "minSdk": 26
+        }
+      ],
+      "requires": [
+        {
+          "probe": "platformSigned",
+          "missing": "platformKey",
+          "effect": "Unattended capture without consent prompt requires a platform-signed system build"
+        }
+      ],
+      "fallback": {
+        "strategy": "MediaProjectionJpeg",
+        "state": "requires",
+        "missing": [
+          "user"
+        ],
+        "effect": "Standard builds use MediaProjection and ask the user on the device"
+      },
+      "confidence": "documented"
+    },
+    {
+      "id": "remote.capture.consentPersistable",
+      "area": "remote",
+      "title": "Remote support: reuse MediaProjection consent across sessions",
+      "minSdk": 26,
+      "maxSdk": 33,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "MediaProjectionPersisted",
+          "minSdk": 26,
+          "maxSdk": 33
+        }
+      ],
+      "fallback": {
+        "strategy": "MediaProjectionPerSession",
+        "state": "degraded",
+        "effect": "Android 14+ requires a fresh MediaProjection consent prompt on every session"
+      },
+      "confidence": "documented"
+    },
+    {
+      "id": "remote.input.privileged",
+      "area": "remote",
+      "title": "Remote support: privileged input injection (INJECT_EVENTS)",
+      "minSdk": 26,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "PrivilegedInput",
+          "minSdk": 26
+        }
+      ],
+      "requires": [
+        {
+          "probe": "platformSigned",
+          "missing": "platformKey",
+          "effect": "Direct InputManager injection requires platform signature; standard builds use AccessibilityService"
+        }
+      ],
+      "fallback": {
+        "strategy": "AccessibilityGestures",
+        "state": "supported",
+        "effect": "Uses RemoteInputService AccessibilityService gestures"
+      },
+      "confidence": "documented"
+    },
+    {
+      "id": "remote.encoder.avc",
+      "area": "remote",
+      "title": "Remote support: hardware H.264 (AVC) video encoding",
+      "minSdk": 26,
+      "requiresDeviceOwner": false,
+      "strategies": [
+        {
+          "id": "HardwareAvcSurfaceEncoder",
+          "minSdk": 26
+        }
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_bluetooth",
+      "area": "restrictions",
+      "title": "Restriction no_config_bluetooth (UserManager.DISALLOW_CONFIG_BLUETOOTH)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_credentials",
+      "area": "restrictions",
+      "title": "Restriction no_config_credentials (UserManager.DISALLOW_CONFIG_CREDENTIALS)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_wifi",
+      "area": "restrictions",
+      "title": "Restriction no_config_wifi (UserManager.DISALLOW_CONFIG_WIFI)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_install_apps",
+      "area": "restrictions",
+      "title": "Restriction no_install_apps (UserManager.DISALLOW_INSTALL_APPS)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_install_unknown_sources",
+      "area": "restrictions",
+      "title": "Restriction no_install_unknown_sources (UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_modify_accounts",
+      "area": "restrictions",
+      "title": "Restriction no_modify_accounts (UserManager.DISALLOW_MODIFY_ACCOUNTS)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_remove_user",
+      "area": "restrictions",
+      "title": "Restriction no_remove_user (UserManager.DISALLOW_REMOVE_USER)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_share_location",
+      "area": "restrictions",
+      "title": "Restriction no_share_location (UserManager.DISALLOW_SHARE_LOCATION)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_uninstall_apps",
+      "area": "restrictions",
+      "title": "Restriction no_uninstall_apps (UserManager.DISALLOW_UNINSTALL_APPS)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_usb_file_transfer",
+      "area": "restrictions",
+      "title": "Restriction no_usb_file_transfer (UserManager.DISALLOW_USB_FILE_TRANSFER)",
+      "minSdk": 18,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 18
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_add_user",
+      "area": "restrictions",
+      "title": "Restriction no_add_user (UserManager.DISALLOW_ADD_USER)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_adjust_volume",
+      "area": "restrictions",
+      "title": "Restriction no_adjust_volume (UserManager.DISALLOW_ADJUST_VOLUME)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_cell_broadcasts",
+      "area": "restrictions",
+      "title": "Restriction no_config_cell_broadcasts (UserManager.DISALLOW_CONFIG_CELL_BROADCASTS)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_mobile_networks",
+      "area": "restrictions",
+      "title": "Restriction no_config_mobile_networks (UserManager.DISALLOW_CONFIG_MOBILE_NETWORKS)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_tethering",
+      "area": "restrictions",
+      "title": "Restriction no_config_tethering (UserManager.DISALLOW_CONFIG_TETHERING)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_vpn",
+      "area": "restrictions",
+      "title": "Restriction no_config_vpn (UserManager.DISALLOW_CONFIG_VPN)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_control_apps",
+      "area": "restrictions",
+      "title": "Restriction no_control_apps (UserManager.DISALLOW_APPS_CONTROL)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_create_windows",
+      "area": "restrictions",
+      "title": "Restriction no_create_windows (UserManager.DISALLOW_CREATE_WINDOWS)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_cross_profile_copy_paste",
+      "area": "restrictions",
+      "title": "Restriction no_cross_profile_copy_paste (UserManager.DISALLOW_CROSS_PROFILE_COPY_PASTE)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_debugging_features",
+      "area": "restrictions",
+      "title": "Restriction no_debugging_features (UserManager.DISALLOW_DEBUGGING_FEATURES)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_factory_reset",
+      "area": "restrictions",
+      "title": "Restriction no_factory_reset (UserManager.DISALLOW_FACTORY_RESET)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_outgoing_calls",
+      "area": "restrictions",
+      "title": "Restriction no_outgoing_calls (UserManager.DISALLOW_OUTGOING_CALLS)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_physical_media",
+      "area": "restrictions",
+      "title": "Restriction no_physical_media (UserManager.DISALLOW_MOUNT_PHYSICAL_MEDIA)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_sms",
+      "area": "restrictions",
+      "title": "Restriction no_sms (UserManager.DISALLOW_SMS)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_unmute_microphone",
+      "area": "restrictions",
+      "title": "Restriction no_unmute_microphone (UserManager.DISALLOW_UNMUTE_MICROPHONE)",
+      "minSdk": 21,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 21
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_outgoing_beam",
+      "area": "restrictions",
+      "title": "Restriction no_outgoing_beam (UserManager.DISALLOW_OUTGOING_BEAM)",
+      "minSdk": 22,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 22
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_fun",
+      "area": "restrictions",
+      "title": "Restriction no_fun (UserManager.DISALLOW_FUN)",
+      "minSdk": 23,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 23
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_network_reset",
+      "area": "restrictions",
+      "title": "Restriction no_network_reset (UserManager.DISALLOW_NETWORK_RESET)",
+      "minSdk": 23,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 23
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_safe_boot",
+      "area": "restrictions",
+      "title": "Restriction no_safe_boot (UserManager.DISALLOW_SAFE_BOOT)",
+      "minSdk": 23,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 23
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_data_roaming",
+      "area": "restrictions",
+      "title": "Restriction no_data_roaming (UserManager.DISALLOW_DATA_ROAMING)",
+      "minSdk": 24,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 24
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_set_user_icon",
+      "area": "restrictions",
+      "title": "Restriction no_set_user_icon (UserManager.DISALLOW_SET_USER_ICON)",
+      "minSdk": 24,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 24
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_set_wallpaper",
+      "area": "restrictions",
+      "title": "Restriction no_set_wallpaper (UserManager.DISALLOW_SET_WALLPAPER)",
+      "minSdk": 24,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 24
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_add_managed_profile",
+      "area": "restrictions",
+      "title": "Restriction no_add_managed_profile (UserManager.DISALLOW_ADD_MANAGED_PROFILE)",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 26
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented",
+      "notes": "Deprecated since API 30"
+    },
+    {
+      "id": "restriction.no_autofill",
+      "area": "restrictions",
+      "title": "Restriction no_autofill (UserManager.DISALLOW_AUTOFILL)",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 26
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_bluetooth",
+      "area": "restrictions",
+      "title": "Restriction no_bluetooth (UserManager.DISALLOW_BLUETOOTH)",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 26
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_bluetooth_sharing",
+      "area": "restrictions",
+      "title": "Restriction no_bluetooth_sharing (UserManager.DISALLOW_BLUETOOTH_SHARING)",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 26
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_remove_managed_profile",
+      "area": "restrictions",
+      "title": "Restriction no_remove_managed_profile (UserManager.DISALLOW_REMOVE_MANAGED_PROFILE)",
+      "minSdk": 26,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 26
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented",
+      "notes": "Deprecated since API 30"
+    },
+    {
+      "id": "restriction.no_airplane_mode",
+      "area": "restrictions",
+      "title": "Restriction no_airplane_mode (UserManager.DISALLOW_AIRPLANE_MODE)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_ambient_display",
+      "area": "restrictions",
+      "title": "Restriction no_ambient_display (UserManager.DISALLOW_AMBIENT_DISPLAY)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_brightness",
+      "area": "restrictions",
+      "title": "Restriction no_config_brightness (UserManager.DISALLOW_CONFIG_BRIGHTNESS)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_date_time",
+      "area": "restrictions",
+      "title": "Restriction no_config_date_time (UserManager.DISALLOW_CONFIG_DATE_TIME)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_locale",
+      "area": "restrictions",
+      "title": "Restriction no_config_locale (UserManager.DISALLOW_CONFIG_LOCALE)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_location",
+      "area": "restrictions",
+      "title": "Restriction no_config_location (UserManager.DISALLOW_CONFIG_LOCATION)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_config_screen_timeout",
+      "area": "restrictions",
+      "title": "Restriction no_config_screen_timeout (UserManager.DISALLOW_CONFIG_SCREEN_TIMEOUT)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_printing",
+      "area": "restrictions",
+      "title": "Restriction no_printing (UserManager.DISALLOW_PRINTING)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_sharing_into_profile",
+      "area": "restrictions",
+      "title": "Restriction no_sharing_into_profile (UserManager.DISALLOW_SHARE_INTO_MANAGED_PROFILE)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_system_error_dialogs",
+      "area": "restrictions",
+      "title": "Restriction no_system_error_dialogs (UserManager.DISALLOW_SYSTEM_ERROR_DIALOGS)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_unified_password",
+      "area": "restrictions",
+      "title": "Restriction no_unified_password (UserManager.DISALLOW_UNIFIED_PASSWORD)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_user_switch",
+      "area": "restrictions",
+      "title": "Restriction no_user_switch (UserManager.DISALLOW_USER_SWITCH)",
+      "minSdk": 28,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 28
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.disallow_config_private_dns",
+      "area": "restrictions",
+      "title": "Restriction disallow_config_private_dns (UserManager.DISALLOW_CONFIG_PRIVATE_DNS)",
+      "minSdk": 29,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 29
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_content_capture",
+      "area": "restrictions",
+      "title": "Restriction no_content_capture (UserManager.DISALLOW_CONTENT_CAPTURE)",
+      "minSdk": 29,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 29
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_content_suggestions",
+      "area": "restrictions",
+      "title": "Restriction no_content_suggestions (UserManager.DISALLOW_CONTENT_SUGGESTIONS)",
+      "minSdk": 29,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 29
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_install_unknown_sources_globally",
+      "area": "restrictions",
+      "title": "Restriction no_install_unknown_sources_globally (UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES_GLOBALLY)",
+      "minSdk": 29,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 29
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.disallow_camera_toggle",
+      "area": "restrictions",
+      "title": "Restriction disallow_camera_toggle (UserManager.DISALLOW_CAMERA_TOGGLE)",
+      "minSdk": 31,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 31
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.disallow_microphone_toggle",
+      "area": "restrictions",
+      "title": "Restriction disallow_microphone_toggle (UserManager.DISALLOW_MICROPHONE_TOGGLE)",
+      "minSdk": 31,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 31
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_add_wifi_config",
+      "area": "restrictions",
+      "title": "Restriction no_add_wifi_config (UserManager.DISALLOW_ADD_WIFI_CONFIG)",
+      "minSdk": 33,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 33
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_change_wifi_state",
+      "area": "restrictions",
+      "title": "Restriction no_change_wifi_state (UserManager.DISALLOW_CHANGE_WIFI_STATE)",
+      "minSdk": 33,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 33
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_sharing_admin_configured_wifi",
+      "area": "restrictions",
+      "title": "Restriction no_sharing_admin_configured_wifi (UserManager.DISALLOW_SHARING_ADMIN_CONFIGURED_WIFI)",
+      "minSdk": 33,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 33
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_wifi_direct",
+      "area": "restrictions",
+      "title": "Restriction no_wifi_direct (UserManager.DISALLOW_WIFI_DIRECT)",
+      "minSdk": 33,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 33
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_wifi_tethering",
+      "area": "restrictions",
+      "title": "Restriction no_wifi_tethering (UserManager.DISALLOW_WIFI_TETHERING)",
+      "minSdk": 33,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 33
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.disallow_config_default_apps",
+      "area": "restrictions",
+      "title": "Restriction disallow_config_default_apps (UserManager.DISALLOW_CONFIG_DEFAULT_APPS)",
+      "minSdk": 34,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 34
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_cellular_2g",
+      "area": "restrictions",
+      "title": "Restriction no_cellular_2g (UserManager.DISALLOW_CELLULAR_2G)",
+      "minSdk": 34,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 34
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_grant_admin",
+      "area": "restrictions",
+      "title": "Restriction no_grant_admin (UserManager.DISALLOW_GRANT_ADMIN)",
+      "minSdk": 34,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 34
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_ultra_wideband_radio",
+      "area": "restrictions",
+      "title": "Restriction no_ultra_wideband_radio (UserManager.DISALLOW_ULTRA_WIDEBAND_RADIO)",
+      "minSdk": 34,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 34
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_add_private_profile",
+      "area": "restrictions",
+      "title": "Restriction no_add_private_profile (UserManager.DISALLOW_ADD_PRIVATE_PROFILE)",
+      "minSdk": 35,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 35
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_assist_content",
+      "area": "restrictions",
+      "title": "Restriction no_assist_content (UserManager.DISALLOW_ASSIST_CONTENT)",
+      "minSdk": 35,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 35
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_near_field_communication_radio",
+      "area": "restrictions",
+      "title": "Restriction no_near_field_communication_radio (UserManager.DISALLOW_NEAR_FIELD_COMMUNICATION_RADIO)",
+      "minSdk": 35,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 35
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_sim_globally",
+      "area": "restrictions",
+      "title": "Restriction no_sim_globally (UserManager.DISALLOW_SIM_GLOBALLY)",
+      "minSdk": 35,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 35
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_change_near_field_communication_radio",
+      "area": "restrictions",
+      "title": "Restriction no_change_near_field_communication_radio (UserManager.DISALLOW_CHANGE_NEAR_FIELD_COMMUNICATION_RADIO)",
+      "minSdk": 36,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 36
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_thread_network",
+      "area": "restrictions",
+      "title": "Restriction no_thread_network (UserManager.DISALLOW_THREAD_NETWORK)",
+      "minSdk": 36,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 36
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    },
+    {
+      "id": "restriction.no_task_continuity_handoff",
+      "area": "restrictions",
+      "title": "Restriction no_task_continuity_handoff (UserManager.DISALLOW_TASK_CONTINUITY_HANDOFF)",
+      "minSdk": 37,
+      "requiresDeviceOwner": true,
+      "strategies": [
+        {
+          "id": "UserRestriction",
+          "minSdk": 37
+        }
+      ],
+      "configFields": [
+        "restrictions"
+      ],
+      "confidence": "documented"
+    }
+  ],
+  "setupSteps": [
+    {
+      "id": "deviceOwner",
+      "title": "Device owner",
+      "minSdk": 21,
+      "auto": "provisioning",
+      "otherwise": "enrollment"
+    },
+    {
+      "id": "runtimePermissions",
+      "title": "Runtime permissions (phone state, location, storage, nearby devices)",
+      "minSdk": 23,
+      "auto": "deviceOwner"
+    },
+    {
+      "id": "postNotifications",
+      "title": "Notifications permission",
+      "minSdk": 33,
+      "auto": "deviceOwner"
+    },
+    {
+      "id": "resetPasswordToken",
+      "title": "Password reset token",
+      "minSdk": 26,
+      "auto": "deviceOwner",
+      "otherwise": "user",
+      "notes": "Active at once if the device has no screen lock; otherwise after the next unlock"
+    },
+    {
+      "id": "overlay",
+      "title": "Display over other apps",
+      "minSdk": 23,
+      "optional": true,
+      "otherwise": "user",
+      "adb": "appops set com.buttermdm.agent SYSTEM_ALERT_WINDOW allow",
+      "notes": "Optional: Butter works without it (lock screen shown in the agent itself)"
+    },
+    {
+      "id": "writeSecureSettings",
+      "title": "Permission to change secure settings",
+      "minSdk": 21,
+      "optional": true,
+      "otherwise": "adb",
+      "adb": "pm grant com.buttermdm.agent android.permission.WRITE_SECURE_SETTINGS",
+      "notes": "Needed to enable the remote support accessibility service automatically"
+    },
+    {
+      "id": "accessibility",
+      "title": "Remote support accessibility service",
+      "minSdk": 26,
+      "optional": true,
+      "auto": "writeSecureSettings",
+      "otherwise": "user",
+      "notes": "Only when remote support is enabled"
+    },
+    {
+      "id": "batteryOptimization",
+      "title": "Battery optimization exemption",
+      "minSdk": 23,
+      "optional": true,
+      "otherwise": "user",
+      "adb": "dumpsys deviceidle whitelist +com.buttermdm.agent",
+      "notes": "Keeps Push messages timely on devices with aggressive power saving"
+    },
+    {
+      "id": "exactAlarms",
+      "title": "Exact alarms",
+      "minSdk": 31,
+      "optional": true,
+      "otherwise": "user",
+      "adb": "appops set com.buttermdm.agent SCHEDULE_EXACT_ALARM allow"
+    },
+    {
+      "id": "defaultLauncher",
+      "title": "Butter as the default launcher",
+      "minSdk": 21,
+      "auto": "deviceOwner"
+    },
+    {
+      "id": "kioskReady",
+      "title": "Kiosk mode permitted",
+      "minSdk": 21,
+      "auto": "deviceOwner",
+      "notes": "Only when the kiosk mode is on"
+    }
+  ],
+  "installFloor": [
+    {
+      "minSdk": 34,
+      "targetSdk": 23
+    },
+    {
+      "minSdk": 35,
+      "targetSdk": 24
+    }
+  ],
+  "vendors": [
+    {
+      "id": "elo",
+      "match": {
+        "manufacturer": "(?i)^elo"
+      },
+      "vendorApis": [],
+      "notes": "Vendor APIs not researched yet"
+    },
+    {
+      "id": "google",
+      "match": {
+        "manufacturer": "(?i)^google"
+      },
+      "vendorApis": []
+    }
+  ]
+}

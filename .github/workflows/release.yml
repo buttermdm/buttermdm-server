@@ -1,0 +1,110 @@
+# ButterMDM server: compiles a version tag and publishes it as a GitHub release.
+#
+# Runs for every pushed version tag (v1.2.3) that contains this file, and on demand for any
+# tag: Actions → Release → Run workflow (push-to-github.sh starts it for the existing tags).
+# Versions 0.x, and tags whose message says "pre-release" or "preview", are published as
+# pre-releases.
+# The release gets the web application buttermdm-server-<version>.war and SHA256SUMS.
+#
+# Licensed under the Apache License, Version 2.0.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to build and release, e.g. v0.1.0'
+        required: true
+      prerelease:
+        description: 'Publish as a pre-release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      PRERELEASE: ${{ inputs.prerelease || false }}
+    steps:
+      - name: Check the tag
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Not a version tag: $TAG"; exit 1; }
+
+      - name: Check out the server
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          path: server
+          fetch-depth: 0
+
+      # The web console is built from its own repository; server/pom.xml names its version
+      - name: Find the web console version
+        id: console
+        run: |
+          version=$(sed -n 's|.*<console.version>\([0-9][0-9.]*\)</console.version>.*|\1|p' server/server/pom.xml | head -1)
+          [ -n "$version" ] || { echo "::error::server/pom.xml names no console.version"; exit 1; }
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "Web console: v$version"
+
+      - name: Check out the web console
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/buttermdm-console
+          ref: refs/tags/${{ steps.console.outputs.tag }}
+          path: console
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: server/**/pom.xml
+
+      - name: Build
+        working-directory: server
+        run: |
+          [ -f server/build.properties ] || cp server/build.properties.example server/build.properties
+          mvn -B -ntp install -DskipTests "-Dconsole.dir=$GITHUB_WORKSPACE/console"
+
+      - name: Package
+        run: |
+          mkdir dist
+          cp server/server/target/launcher.war "dist/buttermdm-server-${TAG#v}.war"
+          (cd dist && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+
+      - name: Publish the release
+        working-directory: server
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch -q --force origin "refs/tags/*:refs/tags/*"
+          subject=$(git for-each-ref "refs/tags/$TAG" --format='%(contents:subject)')
+          body=$(git for-each-ref "refs/tags/$TAG" --format='%(contents:body)')
+          [ -n "$subject" ] || subject="ButterMDM server ${TAG#v}"
+          pre=$PRERELEASE
+          [[ "$TAG" == v0.* ]] && pre=true
+          grep -qiE 'pre-?release|preview' <<<"$subject" && pre=true
+          newest=$(git tag -l 'v*.*.*' | sort -V | tail -1)
+          latest=false
+          [ "$TAG" = "$newest" ] && [ "$pre" = false ] && latest=true
+          notes="${body:+$body$'\n\n'}Installation: download the source of this release and run \`sudo ./buttermdm_install.sh\` (see INSTALL.txt)."
+          notes+=$'\n\n'"\`buttermdm-server-${TAG#v}.war\` is the compiled web application; check it with \`sha256sum -c SHA256SUMS\`."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" ../dist/* --clobber
+          else
+            flags=(--title "$subject" --notes "$notes" --latest="$latest")
+            [ "$pre" = true ] && flags+=(--prerelease)
+            gh release create "$TAG" ../dist/* --verify-tag "${flags[@]}"
+          fi

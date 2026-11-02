@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~
+  ~ ButterMDM: Open Source Android MDM Software
+  ~ https://github.com/ButterMDM
+  ~
+  ~ Copyright (C) 2026 ButterMDM (https://github.com/ButterMDM)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd"
+        logicalFilePath="melon-maintenance.changelog.xml">
+
+    <changeSet id="plugin-melon-maintenance-30.10.2026-12:00" author="buttermdm" context="common">
+        <comment>Plugin, new: Melon POS maintenance gate coordination and deferral telemetry</comment>
+        <sql>
+            INSERT INTO plugins (
+                identifier, name, description,
+                javascriptModuleFile,
+                functionsViewTemplate,
+                settingsViewTemplate,
+                namelocalizationkey,
+                settingsPermission, functionsPermission, deviceFunctionsPermission,
+                enabledForDevice
+            )
+            VALUES (
+                'melon-maintenance', 'Melon Maintenance Gate', 'Coordinates app updates, agent updates, and reboots with the Melon POS maintenance lease gate',
+                'app/components/plugins/melon-maintenance/melon-maintenance.module.js',
+                'app/components/plugins/melon-maintenance/views/melon-maintenance.html',
+                'app/components/plugins/melon-maintenance/views/settings.html',
+                'plugin.melon.maintenance.localization.key.name',
+                'plugin_melon_maintenance_settings',
+                'plugin_melon_maintenance_access',
+                'plugin_melon_maintenance_access',
+                TRUE
+            );
+
+            INSERT INTO permissions (name, description) VALUES ('plugin_melon_maintenance_access', 'Can view Melon maintenance gate status and 3-night deferral alerts');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+
+            INSERT INTO permissions (name, description) VALUES ('plugin_melon_maintenance_settings', 'Can configure Melon maintenance gate package, signer SHA-256, and timeouts');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (2, currval('permissions_id_seq'));
+
+            INSERT INTO permissions (name, description) VALUES ('plugin_melon_maintenance_force_install', 'Can issue an audited technician force-install with a ticket reference');
+            INSERT INTO userRolePermissions (roleId, permissionId) VALUES (1, currval('permissions_id_seq'));
+
+            CREATE TABLE plugin_melon_maintenance_settings (
+                id SERIAL PRIMARY KEY,
+                customerId INT NOT NULL UNIQUE REFERENCES customers (id) ON DELETE CASCADE,
+                gateEnabled BOOLEAN NOT NULL DEFAULT FALSE,
+                gatePackage VARCHAR(128) NOT NULL DEFAULT 'com.melon.pos.grocery',
+                gateSignerSha256 VARCHAR(128) NOT NULL DEFAULT '',
+                askTimeoutSeconds INT NOT NULL DEFAULT 10,
+                minRetrySeconds INT NOT NULL DEFAULT 300
+            );
+
+            CREATE TABLE plugin_melon_maintenance_devices (
+                id SERIAL PRIMARY KEY,
+                deviceId INT NOT NULL UNIQUE REFERENCES devices (id) ON DELETE CASCADE,
+                customerId INT NOT NULL REFERENCES customers (id) ON DELETE CASCADE,
+                lastDecision VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
+                lastReason VARCHAR(64) NOT NULL DEFAULT 'NONE',
+                lastLeaseId VARCHAR(128),
+                lastOutcome VARCHAR(32),
+                deferralCount INT NOT NULL DEFAULT 0,
+                threeNightAlertActive BOOLEAN NOT NULL DEFAULT FALSE,
+                nextRetryAt BIGINT NOT NULL DEFAULT 0,
+                lastReportedAt BIGINT NOT NULL DEFAULT 0
+            );
+
+            CREATE INDEX plugin_melon_maintenance_devices_customer_idx ON plugin_melon_maintenance_devices (customerId);
+
+            CREATE TABLE plugin_melon_maintenance_force_audit (
+                id SERIAL PRIMARY KEY,
+                deviceId INT NOT NULL REFERENCES devices (id) ON DELETE CASCADE,
+                customerId INT NOT NULL REFERENCES customers (id) ON DELETE CASCADE,
+                userId INT NOT NULL,
+                username VARCHAR(128) NOT NULL,
+                ticketRef VARCHAR(128) NOT NULL,
+                packageName VARCHAR(128) NOT NULL,
+                reason VARCHAR(512) NOT NULL,
+                createdAt BIGINT NOT NULL
+            );
+
+            CREATE INDEX plugin_melon_maintenance_force_device_idx ON plugin_melon_maintenance_force_audit (deviceId);
+        </sql>
+        <rollback>
+            DROP TABLE IF EXISTS plugin_melon_maintenance_force_audit;
+            DROP TABLE IF EXISTS plugin_melon_maintenance_devices;
+            DROP TABLE IF EXISTS plugin_melon_maintenance_settings;
+            DELETE FROM permissions WHERE name IN (
+                'plugin_melon_maintenance_access',
+                'plugin_melon_maintenance_settings',
+                'plugin_melon_maintenance_force_install'
+            );
+            DELETE FROM plugins WHERE identifier = 'melon-maintenance';
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

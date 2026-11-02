@@ -1,0 +1,167 @@
+/*
+ *
+ * ButterMDM: Open Source Android MDM Software
+ * https://github.com/ButterMDM
+ *
+ * Copyright (C) 2019 ButterMDM (https://github.com/ButterMDM)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package com.buttermdm.rest.json;
+
+import com.buttermdm.persistence.domain.Application;
+import com.buttermdm.persistence.domain.ConfigurationFile;
+
+import java.util.List;
+
+/**
+ * <p>An interface for the response sent to device in response to request for configuration synchronization.</p>
+ *
+ * @author isv
+ */
+public interface SyncResponseInt {
+
+    String getBackgroundColor();
+
+    String getTextColor();
+
+    String getBackgroundImageUrl();
+
+    List<SyncApplicationInt> getApplications();
+
+    String getPassword();
+
+    String getImei();
+
+    String getPhone();
+
+    String getIconSize();
+
+    String getTitle();
+
+    Boolean getGps();
+
+    Boolean getBluetooth();
+
+    Boolean getWifi();
+
+    Boolean getMobileData();
+
+    boolean isKioskMode();
+
+    Boolean getKioskHome();
+
+    Boolean getKioskRecents();
+
+    Boolean getKioskNotifications();
+
+    Boolean getKioskSystemInfo();
+
+    Boolean getKioskKeyguard();
+
+    Boolean getKioskLockButtons();
+
+    Boolean getKioskScreenOn();
+
+    String getMainApp();
+
+    boolean isLockStatusBar();
+
+    int getSystemUpdateType();
+
+    String getSystemUpdateFrom();
+
+    String getSystemUpdateTo();
+
+    Boolean getScheduleAppUpdate();
+
+    String getAppUpdateFrom();
+
+    String getAppUpdateTo();
+
+    String getDownloadUpdates();
+
+    List<SyncApplicationSettingInt> getApplicationSettings();
+
+    Boolean getUsbStorage();
+
+    String getRequestUpdates();
+
+    Boolean getDisableLocation();
+
+    String getAppPermissions();
+
+    String getPushOptions();
+
+    Integer getKeepaliveTime();
+
+    Boolean getAutoBrightness();
+
+    Integer getBrightness();
+
+    Boolean getManageTimeout();
+
+    Integer getTimeout();
+
+    Boolean getLockVolume();
+
+    Boolean getManageVolume();
+
+    Integer getVolume();
+
+    String getPasswordMode();
+
+    Integer getOrientation();
+
+    Boolean getDisplayStatus();
+
+    Boolean getRunDefaultLauncher();
+
+    Boolean getDisableScreenshots();
+
+    Boolean getAutostartForeground();
+
+    String getTimeZone();
+
+    String getAllowedClasses();
+
+    String getNewServerUrl();
+
+    Boolean getLockSafeSettings();
+
+    Boolean getPermissive();
+
+    Boolean getKioskExit();
+
+    Boolean getShowWifi();
+
+    List<SyncConfigurationFileInt> getFiles();
+
+    String getNewNumber();
+
+    String getRestrictions();
+
+    String getCustom1();
+
+    String getCustom2();
+
+    String getCustom3();
+
+    String getAppName();
+
+    String getVendor();
+
+    String getDescription();
+}

@@ -1,0 +1,116 @@
+{
+  "comment": "Shared by the server (CapabilityResolverTests) and the Butter agent (CapabilityResolverTest): both implementations must give these results with the built-in catalog. Only the fields listed in 'expect' are compared.",
+  "cases": [
+    {
+      "name": "Android 10 point-of-sale terminal, enrolled by QR code (no ADB grant)",
+      "profile": {"sdkInt": 29, "manufacturer": "Elo Touch Solutions", "deviceOwner": true,
+                  "writeSecureSettings": false, "accessibilityServiceEnabled": false, "screenCaptureDisabled": false,
+                  "resetPasswordTokenActive": true, "platformSigned": false, "bluetoothConnectGranted": true,
+                  "usbDataSignalingSupported": false, "avcEncoder": true},
+      "expect": {
+        "kiosk.lockTask": {"state": "supported", "strategy": "LockTaskBasicApi26"},
+        "kiosk.lockTaskFeatures": {"state": "supported", "strategy": "LockTaskFeaturesApi28"},
+        "kiosk.lockTaskLaunchOption": {"state": "supported", "strategy": "ActivityOptionsLockTaskApi28"},
+        "kiosk.keyguardDisable": {"state": "supported", "strategy": "KeyguardDisabledApi23"},
+        "location.toggle": {"state": "requires", "missing": ["user"], "evidence": "rule:sdk=29"},
+        "time.autoTimeZone": {"state": "supported", "strategy": "GlobalSettingAutoTimeZone"},
+        "time.autoTime": {"state": "supported", "strategy": "AutoTimeRequiredApi26"},
+        "time.timeZone": {"state": "supported", "strategy": "SetTimeZoneApi28"},
+        "display.brightness": {"state": "supported"},
+        "mobileData.toggle": {"state": "requires", "missing": ["user"], "evidence": "probe:platformSigned=false"},
+        "remote.capture.mediaProjection": {"state": "supported", "strategy": "MediaProjectionJpeg"},
+        "remote.capture.consentPersistable": {"state": "supported", "strategy": "MediaProjectionPersisted"},
+        "remote.encoder.avc": {"state": "supported", "strategy": "HardwareAvcSurfaceEncoder"},
+        "remote.input.accessibility": {"state": "requires", "missing": ["adb"]},
+        "restriction.disallow_config_private_dns": {"state": "supported", "strategy": "UserRestriction"},
+        "restriction.disallow_camera_toggle": {"state": "unsupported", "evidence": "rule:sdk=29"},
+        "password.resetWithToken": {"state": "supported"},
+        "password.resetLegacy": {"state": "supported", "evidence": "rule:sdk=29"},
+        "usb.dataSignaling": {"state": "degraded", "strategy": "DisallowUsbFileTransfer", "evidence": "rule:sdk=29"},
+        "bluetooth.toggle": {"state": "supported"}
+      }
+    },
+    {
+      "name": "Android 8.1",
+      "profile": {"sdkInt": 27, "manufacturer": "Acme", "deviceOwner": true, "writeSecureSettings": true,
+                  "accessibilityServiceEnabled": true, "screenCaptureDisabled": false, "resetPasswordTokenActive": false,
+                  "platformSigned": false},
+      "expect": {
+        "kiosk.lockTaskFeatures": {"state": "degraded", "strategy": "LockTaskBasicApi26"},
+        "kiosk.lockTaskLaunchOption": {"state": "supported", "strategy": "StartLockTaskFromActivity", "evidence": "rule:sdk=27"},
+        "display.brightness": {"state": "degraded"},
+        "time.timeZone": {"state": "unsupported"},
+        "time.autoTimeZone": {"state": "unsupported"},
+        "time.autoTime": {"state": "supported", "strategy": "AutoTimeRequiredApi26"},
+        "location.toggle": {"state": "requires", "missing": ["user"]},
+        "password.resetWithToken": {"state": "requires", "missing": ["user"], "evidence": "probe:resetPasswordTokenActive=false"},
+        "remote.input.accessibility": {"state": "supported", "strategy": "AccessibilityGestures"},
+        "restriction.no_config_location": {"state": "unsupported"}
+      }
+    },
+    {
+      "name": "Android 16, screenshots blocked, ADB grant done",
+      "profile": {"sdkInt": 36, "manufacturer": "Google", "deviceOwner": true, "writeSecureSettings": true,
+                  "accessibilityServiceEnabled": false, "screenCaptureDisabled": true, "resetPasswordTokenActive": true,
+                  "platformSigned": false, "bluetoothConnectGranted": false, "usbDataSignalingSupported": true,
+                  "avcEncoder": true},
+      "expect": {
+        "location.toggle": {"state": "supported", "strategy": "LocationEnabledApi30"},
+        "time.autoTimeZone": {"state": "supported", "strategy": "AutoTimeZoneApi30"},
+        "time.autoTime": {"state": "supported", "strategy": "AutoTimeApi30"},
+        "usb.dataSignaling": {"state": "supported", "strategy": "UsbDataSignalingApi31"},
+        "apps.userControlDisabled": {"state": "supported", "strategy": "UserControlDisabledPackagesApi30"},
+        "apps.installMinTargetSdk": {"state": "supported", "strategy": "TargetSdkFloorCheck"},
+        "bluetooth.toggle": {"state": "requires", "missing": ["permission"], "evidence": "probe:bluetoothConnectGranted=false"},
+        "remote.input.accessibility": {"state": "supported"},
+        "remote.capture.mediaProjection": {"state": "unsupported", "evidence": "probe:screenCaptureDisabled=true"},
+        "remote.capture.consentPersistable": {"state": "degraded", "strategy": "MediaProjectionPerSession", "evidence": "rule:sdk=36"},
+        "remote.encoder.avc": {"state": "supported", "strategy": "HardwareAvcSurfaceEncoder"},
+        "restriction.no_thread_network": {"state": "supported"},
+        "restriction.no_task_continuity_handoff": {"state": "unsupported"}
+      }
+    },
+    {
+      "name": "Not a device owner",
+      "profile": {"sdkInt": 30, "deviceOwner": false, "screenCaptureDisabled": false},
+      "expect": {
+        "kiosk.lockTask": {"state": "unsupported", "evidence": "probe:deviceOwner=false"},
+        "password.quality": {"state": "supported"},
+        "remote.capture.mediaProjection": {"state": "supported"}
+      }
+    },
+    {
+      "name": "Device owner state not reported",
+      "profile": {"sdkInt": 30},
+      "expect": {
+        "kiosk.lockTask": {"state": "unknown", "evidence": "probe:deviceOwner=unreported"},
+        "remote.capture.mediaProjection": {"state": "unknown", "evidence": "probe:screenCaptureDisabled=unreported"}
+      }
+    },
+    {
+      "name": "A capability the device failed to apply",
+      "profile": {"sdkInt": 29, "deviceOwner": true},
+      "lastOutcomes": {"wifi.toggle": "failed", "kiosk.lockTask": "applied"},
+      "expect": {
+        "wifi.toggle": {"state": "unsupported", "evidence": "result:failed"},
+        "kiosk.lockTask": {"state": "supported"}
+      }
+    },
+    {
+      "name": "Probes of an any-of requirement not reported",
+      "profile": {"sdkInt": 29, "deviceOwner": true, "writeSecureSettings": false},
+      "expect": {
+        "remote.input.accessibility": {"state": "unknown", "evidence": "probe:accessibilityServiceEnabled|writeSecureSettings=unreported"}
+      }
+    },
+    {
+      "name": "Vendor rule",
+      "profile": {"sdkInt": 29, "manufacturer": "Elo Touch Solutions", "deviceOwner": true},
+      "addVendorRules": [{"capability": "wifi.toggle", "vendor": "elo", "state": "unsupported", "reason": "Test rule"}],
+      "expect": {
+        "wifi.toggle": {"state": "unsupported", "evidence": "vendor:elo"},
+        "bluetooth.toggle": {"state": "supported"}
+      }
+    }
+  ]
+}

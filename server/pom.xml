@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~
+  ~ ButterMDM: Open Source Android MDM Software
+  ~ https://github.com/ButterMDM
+  ~
+  ~ Copyright (C) 2019 ButterMDM (https://github.com/ButterMDM)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>server</artifactId>
+    <packaging>war</packaging>
+    <version>0.1.0</version>
+    <name>MDM Server</name>
+
+    <parent>
+        <groupId>com.buttermdm</groupId>
+        <artifactId>root</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
+    <properties>
+        <!-- The web console (React/TypeScript, built with Vite) lives in its own repository, buttermdm-console,
+             tag v${console.version}, cloned next to buttermdm-server; override with -Dconsole.dir=/path/to/console -->
+        <console.version>0.1.0</console.version>
+        <console.dir>${basedir}/../../buttermdm-console</console.dir>
+        <console.node.version>v22.14.0</console.node.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.github.kenglxn.qrgen</groupId>
+            <artifactId>javase</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.buttermdm</groupId>
+            <artifactId>common</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.buttermdm</groupId>
+            <artifactId>notification</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.buttermdm</groupId>
+            <artifactId>jwt</artifactId>
+            <version>0.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.21.0</version>
+        </dependency>
+
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>devicelog-core</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>devicelog-postgres</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>deviceinfo</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>audit</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>messaging</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <!-- The formatting of this line must be kept as is - a single line -->
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>devicereset</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>deviceprofile</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>remotesupport</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>rustdesk</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>melon-maintenance</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+
+        <dependency>
+            <groupId>com.buttermdm.plugin</groupId>
+            <artifactId>platform</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+
+        <dependency><groupId>com.buttermdm.plugin</groupId><artifactId>push</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+    </dependencies>
+
+    <build>
+
+        <finalName>launcher</finalName>
+
+        <plugins>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.6.1</version>
+                <configuration>
+                    <filesets>
+                        <fileset><directory>target</directory></fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target</outputDirectory>
+                            <filters>
+                                <filter>build.properties</filter>
+                            </filters>
+                            <resources>
+                                <resource>
+                                    <directory>conf</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <path>/</path>
+                    <port>9090</port>
+                    <contextFile>target/context.xml</contextFile>
+                </configuration>
+            </plugin>
+
+            <!-- Build the web console (buttermdm-console): Node is downloaded by the plugin, the Vite build writes
+                 ${console.dir}/dist, which the WAR plugin packages at the root of the web application -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.15.1</version>
+
+                <configuration>
+                    <workingDirectory>${console.dir}</workingDirectory>
+                    <installDirectory>${project.build.directory}/console-node</installDirectory>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>install-node-and-npm</goal></goals>
+                        <configuration>
+                            <nodeVersion>${console.node.version}</nodeVersion>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>npm ci</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration>
+                            <arguments>ci --no-audit --no-fund</arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>build console</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>${console.dir}/dist</directory>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

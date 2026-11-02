@@ -1,0 +1,14 @@
+{
+  "plugin.rustdesk.localization.key.name": "RustDesk",
+  "plugin.rustdesk.title": "RustDesk Remote Desktop & Fleet Integration",
+  "plugin.rustdesk.settings.title": "RustDesk Server & Provisioning Settings",
+  "plugin.rustdesk.server.status": "Self-Hosted RustDesk Server Status (hbbs / hbbr)",
+  "plugin.rustdesk.refresh": "Refresh",
+  "plugin.rustdesk.provision.button": "Provision RustDesk APK to Configuration",
+  "plugin.rustdesk.detect.button": "Auto-Detect /opt/rustdesk",
+  "plugin.rustdesk.devices.title": "Managed Devices — RustDesk Status & Peer IDs",
+  "plugin.rustdesk.settings.saved": "RustDesk settings saved successfully",
+  "plugin.rustdesk.settings.detected": "Auto-detected local /opt/rustdesk server and public key",
+  "plugin.rustdesk.apk.provisioned": "RustDesk Android APK provisioned and pushed to devices",
+  "plugin.rustdesk.error.provision": "Failed to provision RustDesk APK"
+}

@@ -1,0 +1,68 @@
+ButterMDM: a corporate launcher for Android
+==============================================
+=    BUILD INSTRUCTIONS FOR THE WEB PANEL    =
+==============================================
+
+This instruction has been tested on Ubuntu Linux 20.04 LTS/22.04 LTS.
+
+1. Install required software
+
+For Ubuntu Linux 20.04 LTS
+# sudo apt install git aapt tomcat8 maven postgresql
+
+For Ubuntu Linux 22.04 LTS:
+# sudo apt install git aapt tomcat9 maven postgresql
+
+2. Make sure Tomcat is running
+
+curl localhost:8080
+(if you get "Failed to connect" error, fix the installation issue)
+
+3. Clone the repository
+
+# git clone https://github.com/buttermdm/buttermdm-server
+# cd buttermdm-server
+
+4. If you are planning to run or debug ButterMDM in IDE, create the properties
+file from the sample
+
+# cp server/build.properties.example server/build.properties
+
+and update the contents of the server/build.properties file.
+
+5. Build the source code
+
+# mvn install
+
+The build of the server module also builds the web console (React/TypeScript,
+Vite), which is kept in its own repository. Clone tag v0.1.0 next to the server:
+
+# git clone --branch v0.1.0 https://github.com/buttermdm/buttermdm-console ../buttermdm-console
+# mvn install -Dconsole.dir=../buttermdm-console
+
+The frontend-maven-plugin downloads Node.js 22 into server/target/console-node,
+runs "npm ci" and "npm run build" in the console directory, and the WAR packages
+console/dist at its root. Internet access is needed for the first build
+(Node.js and the npm packages). Without -Dconsole.dir the build looks for the
+console in ../buttermdm-console (next to the server repository).
+
+To work on the console itself (development server with live reload, browser
+tests), see console/README.md.
+
+6. Create the PostgreSQL database and user
+
+# sudo su postgres
+# psql
+postgres=# CREATE USER buttermdm WITH PASSWORD 'topsecret';
+postgres=# CREATE DATABASE buttermdm WITH OWNER=buttermdm;
+postgres=# \q
+
+7. Run the installer script (as root)
+
+sudo ./buttermdm_install.sh
+
+Note: the installer compiles ButterMDM itself (see INSTALL.txt), so steps 1-6
+are only needed for development.
+
+8. On success, the installer script provides you with the URL. Open ButterMDM in browser.
+
